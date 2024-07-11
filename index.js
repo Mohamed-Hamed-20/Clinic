@@ -29,5 +29,5 @@ app.all("*", (req, res) => {
 app.use(GlobalErrorHandling);
 
 // ==================
-const port = parseInt(process.env.PORT);
+const port = parseInt(process.env.PORT) || 7200;
 app.listen(port, () => console.log(`Example app listening on port ${port}!`));
