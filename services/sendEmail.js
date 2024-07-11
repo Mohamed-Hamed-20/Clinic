@@ -1,0 +1,63 @@
+import nodemailer from "nodemailer";
+import { confirmEmailTemplet } from "./templetHtml.js";
+import { generateToken } from "./Token.js";
+
+export const sendEmail = async ({ to, subject, html, bcc } = {}) => {
+  try {
+    /*=================================================*/
+    //create Transport to send Email
+    const transporter = nodemailer.createTransport({
+      host: "localhost",
+      port: 465,
+      secure: true,
+      service: "gmail",
+      auth: {
+        user: process.env.email,
+        pass: process.env.password,
+      },
+    });
+
+    // send Email
+    const info = await transporter.sendMail({
+      from: `"Mohamed Hamed - OM Team" <${process.env.email}>`, // sender address
+      to,
+      bcc,
+      subject,
+      text: "Hello world?",
+      html,
+    });
+
+    //if error return error
+    if (info?.accepted?.length < 1) {
+      throw new Error("Email Not send Successfully", { code: 500 });
+    }
+
+    // return done
+    return true;
+  } catch (error) {
+    throw new Error(error);
+  }
+};
+
+export const sendconfirmEmail = async (user, link) => {
+  try {
+    const token = await generateToken({
+      payload: { userId: user._id, role: user.role },
+      signature: process.env.DEFAULT_SIGNATURE,
+      expiresIn: process.env.ConfirmEmailExpireIn,
+    });
+
+    link = `${link}/${token}`;
+    const html = await confirmEmailTemplet(link);
+    const isSend = await sendEmail({
+      to: user.email,
+      subject: "This Message to confirm your Email",
+      html: html,
+    });
+
+    // result
+    return isSend ? true : false;
+  } catch (error) {
+    throw new Error(error);
+  }
+};
