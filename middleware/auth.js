@@ -1,5 +1,3 @@
-
-
 export const roles = {
   user: "user",
   doctor: "doctor",
@@ -36,7 +34,7 @@ export const isAuth = (roles) => {
         signature: process.env.ACCESS_TOKEN_SECRET,
       });
 
-      if (!decode.userId || !decode.role || !decode.IpAddress) {
+      if (!decode.userId || !decode.role || !decause.IpAddress) {
         return next(new Error("Invalid Token Payload", { cause: 400 }));
       }
 

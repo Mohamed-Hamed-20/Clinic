@@ -1,18 +1,23 @@
+import { env } from "./env.js";
+
 export const asyncHandler = (controller) => {
   return (req, res, next) => {
     controller(req, res, next).catch(async (error) => {
       const validStatusCode =
-        error.code &&
-        Number.isInteger(error.code) &&
-        error.code >= 100 &&
-        error.code < 600;
-      const statusCode = validStatusCode ? error.code : 500;
+        error.cause &&
+        Number.isInteger(error.cause) &&
+        error.cause >= 100 &&
+        error.cause < 600;
+      const statusCode = validStatusCode ? error.cause : 500;
 
       let result = {};
 
-      process.env.MOOD == "DEV"
-        ? (result = { message: error.message, stack: error.stack })
-        : (result = { message: "something went wrong ! , SERVER ERROR ! :( " });
+      process.env.MOOD == env.DEV
+        ? (result = { message: error.message, stack: error.stack, statusCode })
+        : (result = {
+            message: "something went wrong ! , SERVER ERROR ! :( ",
+            statusCode,
+          });
 
       return res.status(statusCode || 500).json(result);
     });
@@ -22,9 +27,16 @@ export const asyncHandler = (controller) => {
 export const GlobalErrorHandling = (error, req, res, next) => {
   let result = {};
 
-  process.env.MOOD == "DEV"
+  process.env.MOOD == env.DEV
     ? (result = { message: error.message, stack: error.stack })
     : (result = { message: error.message });
 
-  return res.status(error.code || 500).json(result);
+  return res.status(error.cause || 500).json(result);
 };
+
+export class CustomError extends Error {
+  constructor(message, code) {
+    super(message);
+    this.code = code;
+  }
+}

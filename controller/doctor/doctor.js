@@ -18,7 +18,7 @@ export const createDoctor = asyncHandler(async (req, res, next) => {
     check.email === email
       ? (message = "Email is Already Exist")
       : (message = "Phone is Already Exist");
-    return next(new Error({ message }, { code: 400 }));
+    return next(new Error({ message }, { cause: 400 }));
   }
 
   const hashPassword = await hashpassword({
@@ -48,7 +48,7 @@ export const createDoctor = asyncHandler(async (req, res, next) => {
   //response
   return res.status(201).json({
     message: "doctor Created successfully",
-    code: 201,
+    cause: 201,
     doctor: { email, name },
   });
 });

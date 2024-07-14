@@ -119,12 +119,6 @@ export const generalFields = {
 
   date: joi.date().iso().messages(customMessages),
 
-  department: joi
-    .string()
-    .valid("not specify", "cs", "is", "ai", "sc")
-    .trim()
-    .lowercase()
-    .messages(customMessages),
 
   sort: joi.string().trim().optional().messages(customMessages),
   select: joi

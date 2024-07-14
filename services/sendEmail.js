@@ -1,5 +1,5 @@
 import nodemailer from "nodemailer";
-import { confirmEmailTemplet } from "./templetHtml.js";
+import { confirmEmailTemplet, sendCodeTemplet } from "./templetHtml.js";
 import { generateToken } from "./Token.js";
 
 export const sendEmail = async ({ to, subject, html, bcc } = {}) => {
@@ -60,4 +60,20 @@ export const sendconfirmEmail = async (user, link) => {
   } catch (error) {
     throw new Error(error);
   }
+};
+
+function generateVerificationCode() {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
+export const sendCode = async ({ email, name } = {}) => {
+  const code = generateVerificationCode();
+  const html = await sendCodeTemplet({ name, code });
+  const isSend = await sendEmail({
+    to: email,
+    subject: "this code to verify you owner of this this account",
+    html: html,
+  });
+
+  return isSend ? code : false;
 };

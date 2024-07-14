@@ -6,11 +6,11 @@ export const hashpassword = async ({
 } = {}) => {
   try {
     if (!password || !saltRound) {
-      throw new Error("password and salt_Round Required", { code: 500 });
+      throw new Error("password and salt_Round Required", { cause: 500 });
     }
     const hashpassword = await bcrypt.hash(password, parseInt(saltRound));
     if (!hashpassword) {
-      throw new Error("Error in create Hash password", { code: 500 });
+      throw new Error("Error in create Hash password", { cause: 500 });
     }
     return hashpassword;
   } catch (error) {
@@ -20,6 +20,7 @@ export const hashpassword = async ({
 
 export const verifypass = async ({ password, hashpassword } = {}) => {
   try {
+    
     const matched = bcrypt.compareSync(password, hashpassword);
     return matched;
   } catch (error) {

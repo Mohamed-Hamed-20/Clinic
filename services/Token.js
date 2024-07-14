@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import { CustomError } from "./errorHandling.js";
 // import TokenModel from "../../DB/models/token.model.js";
 
 export const storeRefreshToken = async (refreshToken, userId, next) => {
@@ -69,10 +70,9 @@ export const verifyToken = ({
     }
     return data;
   } catch (error) {
-    throw new Error(error.message);
+    throw new CustomError("Invalid verify token", 400);
   }
 };
-
 
 export const generateToken = async ({
   payload = {},
