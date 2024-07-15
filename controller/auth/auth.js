@@ -121,7 +121,7 @@ export const register = asyncHandler(async (req, res, next) => {
 
   // send confirm email
   let frontEndURL = req.headers.referer;
-  const link = `${frontEndURL}auth//confirm/email`;
+  const link = `${frontEndURL}confirmEmail`;
   const sendedPromise = sendconfirmEmail(user, link);
 
   // safe object data
