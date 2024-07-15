@@ -1,3 +1,4 @@
+import GoogleAuth from "../../services/googleAuth.js";
 import userModel from "../../DB/models/user.model.js";
 import { roles } from "../../middleware/auth.js";
 import { env } from "../../services/env.js";
@@ -276,4 +277,23 @@ export const verifySendcode = asyncHandler(async (req, res, next) => {
 
   // Send success response
   return res.status(200).json({ message: "verifiyed Successfully" });
+});
+
+// generate url auth
+export const googleUrlAuth = asyncHandler(async (req, res, next) => {
+  const googleAuth = new GoogleAuth();
+  const url = await googleAuth.generateAuthUrl();
+  return res.status(200).json({ message: " url created successfully ", url });
+});
+
+export const googleCallBack = asyncHandler(async (req, res, next) => {
+  console.log({ query: req.query });
+  console.log({ body: req.body });
+  console.log({ params: req.params });
+  const code = req.query.code;
+  const googleAuth = new GoogleAuth();
+
+  const user = await googleAuth.getUserInfo(code);
+  return res.json({ user });
+  // return res.json({ query: req.query, params: req.params, body: req.body });
 });
