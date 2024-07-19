@@ -1,20 +1,14 @@
-import { OAuth2Client } from "google-auth-library";
+import { google } from "googleapis";
 
 class GoogleAuth {
   constructor() {
-    console.log(
-      process.env.CLIENT_ID,
-      process.env.CLIENT_SECRET,
-      process.env.REDIRECT_URI
-    );
-    this.client = new OAuth2Client(
+    this.client = new google.auth.OAuth2(
       process.env.CLIENT_ID,
       process.env.CLIENT_SECRET,
       process.env.REDIRECT_URI
     );
   }
 
-  // generate link to login with google Auth
   async generateAuthUrl() {
     const url = this.client.generateAuthUrl({
       access_type: "offline",
@@ -22,40 +16,49 @@ class GoogleAuth {
         "https://www.googleapis.com/auth/userinfo.profile",
         "https://www.googleapis.com/auth/userinfo.email",
         "https://www.googleapis.com/auth/user.phonenumbers.read",
+        "https://www.googleapis.com/auth/user.gender.read",
         "https://www.googleapis.com/auth/user.birthday.read",
         "https://www.googleapis.com/auth/user.addresses.read",
+        "https://www.googleapis.com/auth/contacts.readonly",
       ],
     });
     return url;
   }
 
   async getUserInfo(code) {
-    // after you send code you with this ==   access_token  ,  refresh_token  ,   scope  ,  token_type  ,   id_token   ====
     const { tokens } = await this.client.getToken(code);
-    console.log({ tokens });
-    // بتبعت ليا ال الداتا دى علشان خيا تعرفك
     this.client.setCredentials(tokens);
 
-    // بتعمل ticket
-    const ticket = await this.client.verifyIdToken({
-      idToken: tokens.id_token,
-      audience: process.env.GOOGLE_CLIENT_ID,
+    const oauth2 = google.oauth2({
+      auth: this.client,
+      version: "v2",
     });
 
-    console.log({ ticket });
+    const people = google.people({
+      version: "v1",
+      auth: this.client,
+    });
 
-    // بتاخد الداتا من ال payload
-    const payload = ticket.getPayload();
+    const userInfo = await oauth2.userinfo.get();
+    const user = userInfo.data;
 
-    console.log({ payload });
-    const user = {
-      id: payload["sub"],
-      name: payload["name"],
-      email: payload["email"],
-      picture: payload["picture"],
+    const peopleInfo = await people.people.get({
+      resourceName: "people/me",
+      personFields: "phoneNumbers,genders,birthdays,addresses",
+    });
+
+    const additionalInfo = peopleInfo.data;
+
+    const highResPicture = user.picture.replace(/=s96-c$/, "");
+
+    return {
+      ...user,
+      picture: highResPicture,
+      phoneNumber: additionalInfo?.phoneNumbers,
+      gender: additionalInfo?.genders[0]?.value,
+      birthday: additionalInfo.birthdays[0].date || null,
+      addresses: additionalInfo?.addresses,
     };
-
-    return user;
   }
 }
 

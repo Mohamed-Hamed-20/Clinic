@@ -214,85 +214,61 @@ export const sendCodeTemplet = async ({ code, name } = {}) => {
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link
-      href="https://fonts.googleapis.com/css?family=Open+Sans&display=swap"
-      rel="stylesheet"
-    />
     <style>
-      * {
-        box-sizing: border-box;
-      }
       body {
         background-color: #fafafa;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
+        font-family: Arial, sans-serif;
         margin: 0;
-        font-family: 'Open Sans', sans-serif;
+        padding: 0;
       }
       .c-email {
-        width: 40vw;
-        border-radius: 40px;
+        width: 100%;
+        max-width: 600px;
+        margin: 0 auto;
+        border-radius: 10px;
         overflow: hidden;
         box-shadow: 0px 7px 22px 0px rgba(0, 0, 0, 0.1);
         background-color: #fff;
-        transition: all 0.3s ease;
-      }
-      .c-email:hover {
-        transform: scale(1.05);
-        box-shadow: 0px 10px 30px 0px rgba(0, 0, 0, 0.2);
       }
       .c-email__header {
         background-color: #0fd59f;
-        width: 100%;
-        height: 60px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        padding: 10px 0;
+        text-align: center;
       }
       .c-email__header__title {
         font-size: 23px;
-        margin: 0;
         color: white;
+        margin: 0;
       }
       .c-email__content {
-        width: 100%;
-        height: 300px;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-around;
-        align-items: center;
-        background-color: #fff;
-        padding: 15px;
+        padding: 20px;
+        text-align: center;
       }
       .c-email__content__text {
-        font-size: 20px;
-        text-align: center;
+        font-size: 16px;
         color: #343434;
-        margin-top: 0;
+        margin: 10px 0;
       }
       .c-email__content__text.bold {
         font-weight: bold;
       }
       .c-email__code {
         display: block;
-        width: 60%;
-        margin: 30px auto;
+        margin: 20px auto;
         background-color: #ddd;
-        border-radius: 40px;
-        padding: 20px;
+        border-radius: 10px;
+        padding: 15px;
         text-align: center;
-        font-size: 36px;
-        letter-spacing: 10px;
-        box-shadow: 0px 7px 22px 0px rgba(0, 0, 0, 0.1);
-        background: linear-gradient(45deg, #f3ec78, #af4261);
+        font-size: 24px;
+        letter-spacing: 5px;
         color: white;
+        background: linear-gradient(45deg, #f3ec78, #af4261);
       }
       .c-email__footer {
-        width: 100%;
-        height: 60px;
-        background-color: #fff;
+        padding: 10px 0;
+        text-align: center;
+        font-size: 12px;
+        color: #888;
       }
       .text-italic {
         font-style: italic;
@@ -304,7 +280,7 @@ export const sendCodeTemplet = async ({ code, name } = {}) => {
         margin-bottom: 0;
       }
     </style>
-    <title>Document</title>
+    <title>Verification Code</title>
   </head>
   <body>
     <div class="c-email">
@@ -323,9 +299,12 @@ export const sendCodeTemplet = async ({ code, name } = {}) => {
           Verification code is valid only for 30 minutes
         </p>
       </div>
-      <div class="c-email__footer"></div>
+      <div class="c-email__footer">
+        &copy; 2024 Your Company
+      </div>
     </div>
   </body>
 </html>
 `;
 };
+

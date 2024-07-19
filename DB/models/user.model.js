@@ -31,7 +31,7 @@ const userSchema = new Schema(
     },
     phone: {
       type: String,
-      required: true,
+      required: false,
       unique: true,
       validate: {
         validator: function (v) {
@@ -45,7 +45,7 @@ const userSchema = new Schema(
       lowercase: true,
       enum: ["male", "female"],
       default: "male",
-      required :false,
+      required: false,
     },
     birthdate: {
       type: Date,

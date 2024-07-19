@@ -67,6 +67,7 @@ function generateVerificationCode() {
 }
 
 export const sendCode = async ({ email, name } = {}) => {
+  console.log({email , name});
   const code = generateVerificationCode();
   const html = await sendCodeTemplet({ name, code });
   const isSend = await sendEmail({

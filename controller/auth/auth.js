@@ -7,6 +7,7 @@ import { hashpassword, verifypass } from "../../services/hashpassword.js";
 import { sanitizeUser } from "../../services/sanitize.data.js";
 import { sendCode, sendconfirmEmail } from "../../services/sendEmail.js";
 import { generateToken, verifyToken } from "../../services/Token.js";
+import { randomPass } from "../../services/random.js";
 // import { sendconfirmEmail } from "../../services/sendEmail.js";
 
 export const login = asyncHandler(async (req, res, next) => {
@@ -204,20 +205,19 @@ export const confirmEmail = asyncHandler(async (req, res, next) => {
  */
 export const sendVerifyCode = asyncHandler(async (req, res, next) => {
   const { email } = req.body;
-
+  console.log({ email });
   // Find user by email or phone
   const user = await userModel
     .findOne({ $or: [{ email }, { phone: email }] })
-    .select("email phone Activecode");
-
+    .select("name email phone Activecode");
   // If user not found, throw error
   if (!user) {
-    return new CustomError("Invalid Email or Phone", 400);
+    return next(new Error("Invalid Email or Phone", { cause: 400 }));
   }
 
   // Generate and send verification code
   const code = await sendCode({ name: user.name, email: user.email });
-
+  console.log({ code });
   // If code sending fails, throw server error
   if (!code) {
     return new CustomError(
@@ -242,7 +242,6 @@ export const sendVerifyCode = asyncHandler(async (req, res, next) => {
 
 export const verifySendcode = asyncHandler(async (req, res, next) => {
   const { code, email } = req.body;
-  console.log({ code, email });
   const userAgent = req.headers["user-agent"];
 
   // Find user by email or phone
@@ -253,11 +252,11 @@ export const verifySendcode = asyncHandler(async (req, res, next) => {
 
   // If user not found, throw error
   if (!user) {
-    return new CustomError("Invalid Email or Phone", 400);
+    return next(new Error("Invalid Email or Phone", { cause: 400 }));
   }
 
   if (!user.Activecode || user.Activecode !== code) {
-    return next(new Error(" Invaild Code", { cause: 400 }));
+    return next(new Error("Invaild Code", { cause: 400 }));
   }
 
   const updatedUser = await userModel.findByIdAndUpdate(
@@ -287,13 +286,70 @@ export const googleUrlAuth = asyncHandler(async (req, res, next) => {
 });
 
 export const googleCallBack = asyncHandler(async (req, res, next) => {
-  console.log({ query: req.query });
-  console.log({ body: req.body });
-  console.log({ params: req.params });
   const code = req.query.code;
-  const googleAuth = new GoogleAuth();
+  const userAgent = req.headers["user-agent"];
 
-  const user = await googleAuth.getUserInfo(code);
-  return res.json({ user });
-  // return res.json({ query: req.query, params: req.params, body: req.body });
+  //Google auth
+  const googleAuth = new GoogleAuth();
+  const googleUser = await googleAuth.getUserInfo(code);
+
+  if (!googleUser?.email || !googleUser?.verified_email) {
+    return next(new Error("Invaild Social login", { cause: 400 }));
+  }
+  // return res.json({googleUser})
+  let user = await userModel.findOne({ email: googleUser.email });
+
+  if (!user) {
+    const newPassword = await hashpassword({
+      password: await randomPass(),
+      saltRound: process.env.salt_Round,
+    });
+    const userInfo = {
+      name: googleUser.name,
+      email: googleUser.email,
+      password: newPassword,
+      gender: googleUser.gender,
+      birthdate: `${googleUser.birthday.year}-${googleUser.birthday.month}-${googleUser.birthday.day}`,
+      Agents: [userAgent],
+      isconfrimed: true,
+      role: roles.user,
+    };
+    user = await userModel.create(userInfo);
+  }
+
+  //generate acess token
+  const accessToken = await generateToken({
+    payload: { userId: user._id, userAgent, IpAddress: req.ip },
+    signature: process.env.ACCESS_TOKEN_SECRET,
+    expiresIn: process.env.accessExpireIn,
+  });
+
+  //generate refresh token
+  const refreshToken = await generateToken({
+    payload: { userId: user._id, userAgent, IpAddress: req.ip },
+    signature: process.env.REFRESH_TOKEN_SECRET,
+    expiresIn: process.env.REFRESH_ExpireIn,
+  });
+
+  // Set cookies
+  res.cookie("accessToken", accessToken, {
+    httpOnly: true,
+    secure: process.env.MOOD === env.prod,
+    sameSite: "strict",
+    maxAge: 1 * 3600 * 1000, // 1 hour
+  });
+
+  res.cookie("refreshToken", refreshToken, {
+    httpOnly: true,
+    secure: process.env.MOOD === env.prod,
+    sameSite: "strict",
+    maxAge: 5 * 24 * 3600 * 1000, // 5 days
+  });
+
+  // Send JSON response with tokens and user data
+  res.redirect(
+    `${process.env.Front_End}/?user=${encodeURIComponent(
+      JSON.stringify(sanitizeUser(user))
+    )}`
+  );
 });
